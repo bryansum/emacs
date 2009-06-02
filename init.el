@@ -1,6 +1,13 @@
+;; load site-lisp directory
+(setq site-lisp-directory "~/.emacs.d/site-lisp")
+
+; set load-path to top-level site-lisp directory
+(setq load-path `(site-listp-directory
+                                  ,@load-path))
+
 ;; Load CEDET.
 ;; See cedet/common/cedet.info for configuration details.
-(load-file "~/.emacs.d/site-lisp/cedet-1.0pre6/common/cedet.el")
+(load-file (concat site-lisp-directory "/cedet-1.0pre6/common/cedet.el"))
 
 ;; Enable EDE (Project Management) features
 (global-ede-mode 1)
@@ -30,7 +37,7 @@
 ;; (global-srecode-minor-mode 1)
 
 ;; Emacs Code Browser support
-(add-to-list 'load-path "~/.emacs.d/site-lisp/ecb-snap")
+(add-to-list 'load-path (concat site-lisp-directory "/ecb-snap"))
 (require 'ecb-autoloads)
 
 (custom-set-variables
@@ -50,14 +57,14 @@
  )
 
 ;; php-mode
-(add-to-list 'load-path "~/.emacs.d/site-lisp/php-mode")
+(add-to-list 'load-path (concat site-lisp-directory "/php-mode"))
 (require 'php-mode)
 ;; using abbrev-mode
 (add-hook 'php-mode-hook
 		  '(lamdba () (define-abbrev php-mode-abbrev-table "ex" "extends")))
 
 ;; python-mode
-(add-to-list 'load-path "~/.emacs.d/site-lisp/python-mode")
+(add-to-list 'load-path (concat site-lisp-directory "/python-mode"))
 (require 'python-mode)
 (add-to-list 'auto-mode-alist '("\\.py$" . python-mode))
 (add-to-list 'interpreter-mode-alist '("python" . python-mode))
@@ -66,7 +73,7 @@
 (setq font-lock-maximum-decoration t)
 
 ;; ruby-mode
-(add-to-list 'load-path "~/.emacs.d/site-lisp/ruby-mode-cvs")
+(add-to-list 'load-path (concat site-lisp-directory "/ruby-mode-cvs"))
 (require 'ruby-mode)
 (require 'ruby-electric)
 ;; auto-load
@@ -86,7 +93,7 @@
 			 (inf-ruby-keys)
 			 ))
 
-(add-to-list 'load-path "~/.emacs.d/site-lisp/yasnippet")
+(add-to-list 'load-path (concat site-lisp-directory "/yasnippet"))
 (require 'yasnippet-bundle)
 
 (setq help-at-pt-display-when-idle t)
@@ -102,3 +109,84 @@
 
 ;; automatically go into flymake mode
 (add-hook 'find-file-hook 'flymake-find-file-hook)
+
+;; move backup directory
+(setq backup-directory-alist `(("." . ,(expand-file-name "~/.emacs-backups"))))
+
+(require 'filecache)
+
+;; http://www.emacswiki.org/emacs/InteractivelyDoThings
+(require 'ido)
+(ido-mode t)
+
+; Show column of line number on the left
+(load-file (concat site-lisp-directory "/linum.el"))
+(require 'linum)
+(global-linum-mode)
+
+; Highlight parentheses
+(load-file (concat site-lisp-directory "/highlight-parentheses.el"))
+(require 'highlight-parentheses)
+(show-paren-mode)
+
+;; enable visual feedback on selections
+(setq transient-mark-mode t)
+
+(setq
+ sgml-set-face t
+ sgml-markup-faces
+          '((start-tag . font-lock-keyword-face)
+            (end-tag . font-lock-keyword-face)
+            (ignored . font-lock-string-face)
+            (ms-start . font-lock-other-type-face)
+            (ms-end . font-lock-other-type-face)
+            (shortref . bold)
+            (entity . font-lock-reference-face)
+            (comment . font-lock-comment-face)
+            (pi . other-emphasized-face)
+            (sgml . font-lock-function-name-face)
+            (doctype . font-lock-emphasized-face))
+            )
+
+; optional: (setq sgml-auto-activate-dtd t)
+
+;; paredit (for S-expressions)
+(mapc (lambda (mode)
+	(let ((hook (intern (concat (symbol-name mode)
+				    "-mode-hook"))))
+	  (add-hook hook (lambda () (paredit-mode +1)))))
+      '(emacs-lisp lisp inferior-lisp))
+
+;; p4 editing capabilities
+(load-library "p4")
+
+;; re-open frame on file load
+(defadvice server-find-file (before server-find-file-in-one-frame activate)
+  "Make sure that the selected frame is stored in `gnuserv-frame', and raised."
+  (setq gnuserv-frame (selected-frame))
+  (raise-frame))
+
+(defadvice server-edit (before server-edit-in-one-frame activate)
+  "Make sure that the selected frame is stored in `gnuserv-frame', and lowered."
+  (setq gnuserv-frame (selected-frame))
+  (lower-frame))
+
+(defun open-line-above ()
+  "Open a line above the line the point is at.
+Then move to that line and indent accordning to mode"
+  (interactive)
+  (move-beginning-of-line 1)
+  (newline)
+  (previous-line)
+  (indent-according-to-mode))
+
+(defun open-line-below ()
+  "Open a line below the line the point is at.
+Then move to that line and indent accordning to mode"
+  (interactive)
+  (move-end-of-line 1)
+  (newline)
+  (indent-according-to-mode))
+
+(global-set-key (kbd "C-o") 'open-line-above)
+(global-set-key (kbd "C-O") 'open-line-below)
