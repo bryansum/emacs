@@ -41,19 +41,23 @@
 (require 'ecb-autoloads)
 
 (custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
+  ;; custom-set-variables was added by Custom.
+  ;; If you edit it by hand, you could mess it up, so be careful.
+  ;; Your init file should contain only one such instance.
+  ;; If there is more than one, they won't work right.
  '(ecb-options-version "2.40")
+ '(inhibit-startup-screen t)
+ '(initial-buffer-choice "~/")
+ '(ns-antialias-text t)
+ '(ns-pop-up-frames nil)
  '(require-final-newline t)
  '(tab-always-indent nil)
  '(tab-width 4))
 (custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
+  ;; custom-set-faces was added by Custom.
+  ;; If you edit it by hand, you could mess it up, so be careful.
+  ;; Your init file should contain only one such instance.
+  ;; If there is more than one, they won't work right.
  )
 
 ;; php-mode
@@ -232,6 +236,26 @@ Then move to that line and indent accordning to mode"
 (global-set-key (kbd "C-o") 'open-line-above)
 (global-set-key (kbd "C-O") 'open-line-below)
 
+
+; Replace yes-or-no question responses with y-or-n responses
+(fset 'yes-or-no-p 'y-or-n-p)
+
+; Ensure newline at end of all files
+(setq require-final-newline t)
+
+;; clojure-mode
+(add-to-list 'load-path (concat site-lisp-directory "/clojure-mode"))
+(require 'clojure-mode)
+
+;; swank-clojure
+(add-to-list 'load-path (concat site-lisp-directory "/swank-clojure"))
+
+(require 'swank-clojure-autoload)
+(swank-clojure-config
+ (setq swank-clojure-jar-path "~/.clojure/clojure-1.0.0.jar")
+ (setq swank-clojure-extra-classpaths
+       (list "~/.clojure/clojure-contrib.jar")))
+
 ;; load slime ONLY when clisp is present on the system
 (when (executable-find "clisp")
   (add-to-list 'load-path (concat site-lisp-directory "/slime"))  ; your SLIME directory
@@ -244,22 +268,3 @@ Then move to that line and indent accordning to mode"
 			  (unless (slime-connected-p)
 				(save-excursion (slime))))))
 
-; Replace yes-or-no question responses with y-or-n responses
-(fset 'yes-or-no-p 'y-or-n-p)
-
-; Ensure newline at end of all files
-(setq require-final-newline t)
-
-;; enable long-line mode
-(custom-set-faces
- '(my-tab-face            ((((class color)) (:background "grey10"))) t)
- '(my-trailing-space-face ((((class color)) (:background "gray10"))) t)
- '(my-long-line-face ((((class color)) (:background "gray10"))) t))
-(add-hook 'font-lock-mode-hook
-		  (function
-		   (lambda ()
-			 (setq font-lock-keywords
-				   (append font-lock-keywords
-						   '(("\t+" (0 'my-tab-face t))
-							 ("^.\\{81,\\}$" (0 'my-long-line-face t))
-							 ("[ \t]+$"      (0 'my-trailing-space-face t))))))))

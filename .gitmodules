@@ -1,0 +1,6 @@
+[submodule "site-lisp/clojure-mode"]
+	path = site-lisp/clojure-mode
+	url = http://github.com/jochu/clojure-mode.git
+[submodule "site-lisp/swank-clojure"]
+	path = site-lisp/swank-clojure
+	url = http://github.com/jochu/swank-clojure.git
