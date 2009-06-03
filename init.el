@@ -3,7 +3,7 @@
 
 ; set load-path to top-level site-lisp directory
 (setq load-path `(site-listp-directory
-                                  ,@load-path))
+								  ,@load-path))
 
 ;; Load CEDET.
 ;; See cedet/common/cedet.info for configuration details.
@@ -107,8 +107,46 @@
 ;; electric mode
 (setq c-toggle-electric-state t)
 
-;; automatically go into flymake mode
-(add-hook 'find-file-hook 'flymake-find-file-hook)
+;; flymake-php extension
+(add-to-list 'load-path (concat site-lisp-directory "/flymake-php"))
+(require 'flymake-php)
+(add-hook 'php-mode-user-hook 'flymake-php-load)
+
+;; flymake-ruby extension
+(add-to-list 'load-path (concat site-lisp-directory "/flymake-ruby"))
+(require 'flymake-ruby)
+(add-hook 'ruby-mode-hook 'flymake-ruby-load)
+
+;; make flymake commands to frequently used ones
+(global-set-key [f3] 'flymake-display-err-menu-for-current-line)
+(global-set-key [f4] 'flymake-goto-next-error)
+
+(defun flymake-html-init ()
+  (let* ((temp-file (flymake-init-create-temp-buffer-copy
+					 'flymake-create-temp-inplace))
+		 (local-file (file-relative-name
+					  temp-file
+					  (file-name-directory buffer-file-name))))
+	(list "tidy" (list local-file))))
+
+(add-to-list 'flymake-allowed-file-name-masks
+			 '("\\.html$\\|\\.ctp" flymake-html-init))
+
+(add-to-list 'flymake-err-line-patterns
+			 '("line \\([0-9]+\\) column \\([0-9]+\\) - \\(Warning\\|Error\\): \\(.*\\)"
+			   nil 1 2 4)) (defun flymake-html-init ()
+			 (let* ((temp-file (flymake-init-create-temp-buffer-copy
+								'flymake-create-temp-inplace))
+					(local-file (file-relative-name
+								 temp-file
+								 (file-name-directory buffer-file-name))))
+			   (list "tidy" (list local-file))))
+
+(add-to-list 'flymake-allowed-file-name-masks
+			 '("\\.html$\\|\\.ctp" flymake-html-init))
+(add-to-list 'flymake-err-line-patterns
+			 '("line \\([0-9]+\\) column \\([0-9]+\\) - \\(Warning\\|Error\\): \\(.*\\)"
+			   nil 1 2 4))
 
 ;; move backup directory
 (setq backup-directory-alist `(("." . ,(expand-file-name "~/.emacs-backups"))))
@@ -135,30 +173,33 @@
 (setq
  sgml-set-face t
  sgml-markup-faces
-          '((start-tag . font-lock-keyword-face)
-            (end-tag . font-lock-keyword-face)
-            (ignored . font-lock-string-face)
-            (ms-start . font-lock-other-type-face)
-            (ms-end . font-lock-other-type-face)
-            (shortref . bold)
-            (entity . font-lock-reference-face)
-            (comment . font-lock-comment-face)
-            (pi . other-emphasized-face)
-            (sgml . font-lock-function-name-face)
-            (doctype . font-lock-emphasized-face))
-            )
+		  '((start-tag . font-lock-keyword-face)
+			(end-tag . font-lock-keyword-face)
+			(ignored . font-lock-string-face)
+			(ms-start . font-lock-other-type-face)
+			(ms-end . font-lock-other-type-face)
+			(shortref . bold)
+			(entity . font-lock-reference-face)
+			(comment . font-lock-comment-face)
+			(pi . other-emphasized-face)
+			(sgml . font-lock-function-name-face)
+			(doctype . font-lock-emphasized-face))
+			)
 
-; optional: (setq sgml-auto-activate-dtd t)
+(setq sgml-auto-activate-dtd t)
 
 ;; paredit (for S-expressions)
+(load-file (concat site-lisp-directory "/paredit.el"))
 (mapc (lambda (mode)
 	(let ((hook (intern (concat (symbol-name mode)
-				    "-mode-hook"))))
+					"-mode-hook"))))
 	  (add-hook hook (lambda () (paredit-mode +1)))))
-      '(emacs-lisp lisp inferior-lisp))
+	  '(emacs-lisp lisp inferior-lisp))
 
 ;; p4 editing capabilities
-(load-library "p4")
+(when (executable-find "p4")
+	(add-to-list 'load-path (concat site-lisp-directory "/p4"))
+	(load-library "p4"))
 
 ;; re-open frame on file load
 (defadvice server-find-file (before server-find-file-in-one-frame activate)
@@ -190,3 +231,35 @@ Then move to that line and indent accordning to mode"
 
 (global-set-key (kbd "C-o") 'open-line-above)
 (global-set-key (kbd "C-O") 'open-line-below)
+
+;; load slime ONLY when clisp is present on the system
+(when (executable-find "clisp")
+  (add-to-list 'load-path (concat site-lisp-directory "/slime"))  ; your SLIME directory
+  (setq inferior-lisp-program (executable-find "clisp")) ; your Lisp system
+  (require 'slime)
+  (slime-setup)
+
+  (add-hook 'slime-mode-hook
+			(lambda ()
+			  (unless (slime-connected-p)
+				(save-excursion (slime))))))
+
+; Replace yes-or-no question responses with y-or-n responses
+(fset 'yes-or-no-p 'y-or-n-p)
+
+; Ensure newline at end of all files
+(setq require-final-newline t)
+
+;; enable long-line mode
+(custom-set-faces
+ '(my-tab-face            ((((class color)) (:background "grey10"))) t)
+ '(my-trailing-space-face ((((class color)) (:background "gray10"))) t)
+ '(my-long-line-face ((((class color)) (:background "gray10"))) t))
+(add-hook 'font-lock-mode-hook
+		  (function
+		   (lambda ()
+			 (setq font-lock-keywords
+				   (append font-lock-keywords
+						   '(("\t+" (0 'my-tab-face t))
+							 ("^.\\{81,\\}$" (0 'my-long-line-face t))
+							 ("[ \t]+$"      (0 'my-trailing-space-face t))))))))
