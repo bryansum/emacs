@@ -47,7 +47,7 @@
   ;; If there is more than one, they won't work right.
  '(ecb-options-version "2.40")
  '(inhibit-startup-screen t)
- '(initial-buffer-choice "~/")
+ '(initial-buffer-choice t)
  '(ns-antialias-text t)
  '(ns-pop-up-frames nil)
  '(require-final-newline t)
@@ -249,12 +249,10 @@ Then move to that line and indent accordning to mode"
 
 ;; swank-clojure
 (add-to-list 'load-path (concat site-lisp-directory "/swank-clojure"))
-
-(require 'swank-clojure-autoload)
-(swank-clojure-config
- (setq swank-clojure-jar-path "~/.clojure/clojure-1.0.0.jar")
+(require 'swank-clojure)
+(setq swank-clojure-jar-path "~/.clojure/clojure-1.0.0.jar")
  (setq swank-clojure-extra-classpaths
-       (list "~/.clojure/clojure-contrib.jar")))
+       (list "~/.clojure/clojure-contrib.jar"))
 
 ;; load slime ONLY when clisp is present on the system
 (when (executable-find "clisp")
@@ -267,4 +265,12 @@ Then move to that line and indent accordning to mode"
 			(lambda ()
 			  (unless (slime-connected-p)
 				(save-excursion (slime))))))
+
+;; truncate lines (don't soft-wrap)
+(setq-default truncate-lines t)
+
+;; js2 mode - http://code.google.com/p/js2-mode/
+(add-to-list 'load-path (concat site-lisp-directory "/javascript"))
+(autoload 'js2-mode "js2" nil t)
+(add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
 
