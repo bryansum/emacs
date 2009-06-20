@@ -50,6 +50,7 @@
  '(initial-buffer-choice t)
  '(ns-antialias-text t)
  '(ns-pop-up-frames nil)
+ '(remote-shell-program "/usr/bin/ssh")
  '(require-final-newline t)
  '(tab-always-indent nil)
  '(tab-width 4))
@@ -153,7 +154,17 @@
 			   nil 1 2 4))
 
 ;; move backup directory
-(setq backup-directory-alist `(("." . ,(expand-file-name "~/.emacs-backups"))))
+(defvar user-temporary-file-directory
+  (concat temporary-file-directory user-login-name "/"))
+(make-directory user-temporary-file-directory t)
+(setq backup-by-copying t)
+(setq backup-directory-alist
+	  `(("." . ,user-temporary-file-directory)
+		(,tramp-file-name-regexp nil)))
+(setq auto-save-list-file-prefix
+	  (concat user-temporary-file-directory ".auto-saves-"))
+(setq auto-save-file-name-transforms
+	  `((".*" ,user-temporary-file-directory t)))
 
 (require 'filecache)
 
@@ -201,20 +212,9 @@
 	  '(emacs-lisp lisp inferior-lisp))
 
 ;; p4 editing capabilities
-(when (executable-find "p4")
-	(add-to-list 'load-path (concat site-lisp-directory "/p4"))
-	(load-library "p4"))
-
-;; re-open frame on file load
-(defadvice server-find-file (before server-find-file-in-one-frame activate)
-  "Make sure that the selected frame is stored in `gnuserv-frame', and raised."
-  (setq gnuserv-frame (selected-frame))
-  (raise-frame))
-
-(defadvice server-edit (before server-edit-in-one-frame activate)
-  "Make sure that the selected frame is stored in `gnuserv-frame', and lowered."
-  (setq gnuserv-frame (selected-frame))
-  (lower-frame))
+;; (when (executable-find "p4")
+;; 	(add-to-list 'load-path (concat site-lisp-directory "/p4"))
+;; 	(load-library "p4"))
 
 (defun open-line-above ()
   "Open a line above the line the point is at.
@@ -243,7 +243,7 @@ Then move to that line and indent accordning to mode"
 ; Ensure newline at end of all files
 (setq require-final-newline t)
 
-;; clojure-mode
+;;clojure-mode
 (add-to-list 'load-path (concat site-lisp-directory "/clojure-mode"))
 (require 'clojure-mode)
 
@@ -274,3 +274,37 @@ Then move to that line and indent accordning to mode"
 (autoload 'js2-mode "js2" nil t)
 (add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
 
+;; try loading p4 from Apollo environment
+(when (executable-find "p4")
+  (add-to-list 'load-path (concat site-lisp-directory "/apollo/env/Emacs22"))
+  (load-library "p4"))
+
+;; auto load html-mode for JSPs
+(add-to-list 'auto-mode-alist '("\\.jsp\\'" . html-mode))
+(add-to-list 'auto-mode-alist '("\\.tag\\'" . html-mode))
+;; Not exactly related to editing HTML: enable editing help with mouse-3 in all sgml files
+(defun go-bind-markup-menu-to-mouse3 ()
+  (define-key sgml-mode-map [(down-mouse-3)] 'sgml-tags-menu))
+
+;; load server-mode at start
+(server-start)
+
+;; use f5 to refresh buffer
+(defun refresh-file ()
+  (interactive)
+  (revert-buffer t t t))
+(global-set-key [f5]
+'(lambda () "Refresh the buffer from the disk (prompt of modified)."
+(interactive)
+(revert-buffer t (not (buffer-modified-p)) t)))
+
+;; css-mode
+(add-to-list 'load-path (concat site-lisp-directory "/css-mode"))
+(require 'css-mode)
+(autoload 'css-mode "css-mode" "Mode for editing CSS files" t)
+
+;You may also want something like:
+
+(setq auto-mode-alist
+      (append '(("\\.css$" . css-mode))
+              auto-mode-alist))
