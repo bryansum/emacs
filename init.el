@@ -7,10 +7,10 @@
 
 ;; Load CEDET.
 ;; See cedet/common/cedet.info for configuration details.
-(load-file (concat site-lisp-directory "/cedet-1.0pre6/common/cedet.el"))
+;;(load-file (concat site-lisp-directory "/cedet-1.0pre6/common/cedet.el"))
 
 ;; Enable EDE (Project Management) features
-(global-ede-mode 1)
+;;(global-ede-mode 1)
 
 ;; Enable EDE for a pre-existing C++ project
 ;; (ede-cpp-root-project "NAME" :file "~/myproject/Makefile")
@@ -19,11 +19,11 @@
 ;; Select one of the following:
 
 ;; * This enables the database and idle reparse engines
-(semantic-load-enable-minimum-features)
+;;(semantic-load-enable-minimum-features)
 
 ;; * This enables some tools useful for coding, such as summary mode
 ;;   imenu support, and the semantic navigator
-(semantic-load-enable-code-helpers)
+;;(semantic-load-enable-code-helpers)
 
 ;; * This enables even more coding tools such as intellisense mode
 ;;   decoration mode, and stickyfunc mode (plus regular code helpers)
@@ -37,8 +37,8 @@
 ;; (global-srecode-minor-mode 1)
 
 ;; Emacs Code Browser support
-(add-to-list 'load-path (concat site-lisp-directory "/ecb-snap"))
-(require 'ecb-autoloads)
+;;(add-to-list 'load-path (concat site-lisp-directory "/ecb-snap"))
+;;(require 'ecb-autoloads)
 
 (custom-set-variables
   ;; custom-set-variables was added by Custom.
@@ -101,16 +101,16 @@
 (add-to-list 'load-path (concat site-lisp-directory "/yasnippet"))
 (require 'yasnippet-bundle)
 
-(setq help-at-pt-display-when-idle t)
+(setq-default help-at-pt-display-when-idle t)
 
 ;; set mode to always use spaces
-(setq indent-tabs-mode nil)
+(setq-default indent-tabs-mode nil)
 
 ;; which function mode (show which function you're in)
-(setq which-function-mode t)
+(setq-default which-function-mode t)
 
 ;; electric mode
-(setq c-toggle-electric-state t)
+(setq-default c-toggle-electric-state t)
 
 ;; flymake-php extension
 (add-to-list 'load-path (concat site-lisp-directory "/flymake-php"))
@@ -303,4 +303,62 @@ Then move to that line and indent accordning to mode"
 (setq auto-mode-alist
       (append '(("\\.css$" . css-mode))
               auto-mode-alist))
+
+;; wikipedia-mode
+(add-to-list 'load-path (concat site-lisp-directory "/wikipedia-mode"))
+(autoload 'wikipedia-mode "wikipedia-mode.el"
+"Major mode for editing wikipedia documents. " t)
+
+;; longlines-mode
+(add-to-list 'load-path (concat site-lisp-directory "/longlines-mode"))
+(autoload 'longlines-mode
+  "longlines.el"
+  "Minor mode for automatically wrapping long lines" t)
+
+;; smart-indent mode
+(defvar smart-tab-using-hippie-expand t
+  "turn this on if you want to use hippie-expand completion.")
+
+(defun smart-tab (prefix)
+  "Needs `transient-mark-mode' to be on. This smart tab is
+  minibuffer compliant: it acts as usual in the minibuffer.
+
+  In all other buffers: if PREFIX is \\[universal-argument], calls
+  `smart-indent'. Else if point is at the end of a symbol,
+  expands it. Else calls `smart-indent'."
+  (interactive "P")
+  (labels ((smart-tab-must-expand (&optional prefix)
+                                  (unless (or (consp prefix)
+                                              mark-active)
+                                    (looking-at "\\_>"))))
+    (cond ((minibufferp)
+           (minibuffer-complete))
+          ((smart-tab-must-expand prefix)
+           (if smart-tab-using-hippie-expand
+               (hippie-expand nil)
+             (dabbrev-expand nil)))
+          ((smart-indent)))))
+
+(defun smart-indent ()
+  "Indents region if mark is active, or current line otherwise."
+  (interactive)
+  (if mark-active
+    (indent-region (region-beginning)
+                   (region-end))
+    (indent-for-tab-command)))
+(define-key read-expression-map [(tab)] 'hippie-expand)
+(define-key read-expression-map [(shift tab)] 'unexpand)
+
+;;; groovy-mode
+(add-to-list 'load-path (concat site-lisp-directory "/groovy-mode"))
+;;; use groovy-mode when file ends in .groovy or has #!/bin/groovy at start
+(autoload 'groovy-mode "groovy-mode" "Groovy editing mode." t)
+(add-to-list 'auto-mode-alist '("\.groovy$" . groovy-mode))
+(add-to-list 'interpreter-mode-alist '("groovy" . groovy-mode))
+
+;; javascript-mode
+(add-to-list 'load-path site-lisp-directory)
+(autoload #'espresso-mode "espresso" "Start espresso-mode" t)
+(add-to-list 'auto-mode-alist '("\\.js$" . espresso-mode))
+(add-to-list 'auto-mode-alist '("\\.json$" . espresso-mode))
 
