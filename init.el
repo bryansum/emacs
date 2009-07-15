@@ -45,7 +45,13 @@
   ;; If you edit it by hand, you could mess it up, so be careful.
   ;; Your init file should contain only one such instance.
   ;; If there is more than one, they won't work right.
+ '(css-electric-brace-behavior t)
+ '(css-electric-semi-behavior t)
+ '(css-mode-hook nil)
  '(ecb-options-version "2.40")
+ '(ido-enable-flex-matching t)
+ '(ido-enable-regexp nil)
+ '(ido-everywhere t)
  '(inhibit-startup-screen t)
  '(initial-buffer-choice t)
  '(ns-antialias-text t)
@@ -98,8 +104,14 @@
 			 (inf-ruby-keys)
 			 ))
 
+
+;;----------------------------------------------------------------------------
+;; Yasnippet
+;;----------------------------------------------------------------------------
 (add-to-list 'load-path (concat site-lisp-directory "/yasnippet"))
-(require 'yasnippet-bundle)
+(require 'yasnippet)
+(yas/initialize)
+(yas/load-directory (concat site-lisp-directory "/yasnippet/snippets"))
 
 (setq help-at-pt-display-when-idle t)
 
@@ -308,3 +320,37 @@ Then move to that line and indent accordning to mode"
 (setq auto-mode-alist
       (append '(("\\.css$" . css-mode))
               auto-mode-alist))
+
+;;----------------------------------------------------------------------------
+;; Navigate window layouts with "C-c <left>" and "C-c <right>"
+;;----------------------------------------------------------------------------
+(winner-mode 1)
+
+;;----------------------------------------------------------------------------
+;; Navigate windows "C-<arrow>"
+;;----------------------------------------------------------------------------
+(windmove-default-keybindings 'control)
+
+;;----------------------------------------------------------------------------
+;; Modeline tweaks
+;;----------------------------------------------------------------------------
+(size-indication-mode)
+(autoload 'linum-mode "linum" "Toggle line numbering" t)
+
+;;----------------------------------------------------------------------------
+;; Highlight URLs in comments/strings
+;;----------------------------------------------------------------------------
+(add-hook 'find-file-hooks 'goto-address-prog-mode)
+
+;;----------------------------------------------------------------------------
+;; Browse current HTML file
+;;----------------------------------------------------------------------------
+(defun browse-current-file ()
+  (interactive)
+  (browse-url (concat "file://" (buffer-file-name))))
+
+;;----------------------------------------------------------------------------
+;; NXHTML mode
+;;----------------------------------------------------------------------------
+(load (concat site-lisp-directory "/nxhtml-mode/autostart.el"))
+
