@@ -45,7 +45,13 @@
   ;; If you edit it by hand, you could mess it up, so be careful.
   ;; Your init file should contain only one such instance.
   ;; If there is more than one, they won't work right.
+ '(css-electric-brace-behavior t)
+ '(css-electric-semi-behavior t)
+ '(css-mode-hook nil)
  '(ecb-options-version "2.40")
+ '(ido-enable-flex-matching t)
+ '(ido-enable-regexp nil)
+ '(ido-everywhere t)
  '(inhibit-startup-screen t)
  '(initial-buffer-choice t)
  '(ns-antialias-text t)
@@ -98,8 +104,14 @@
 			 (inf-ruby-keys)
 			 ))
 
+
+;;----------------------------------------------------------------------------
+;; Yasnippet
+;;----------------------------------------------------------------------------
 (add-to-list 'load-path (concat site-lisp-directory "/yasnippet"))
-(require 'yasnippet-bundle)
+(require 'yasnippet)
+(yas/initialize)
+(yas/load-directory (concat site-lisp-directory "/yasnippet/snippets"))
 
 (setq-default help-at-pt-display-when-idle t)
 
@@ -241,12 +253,10 @@ Then move to that line and indent accordning to mode"
 
 ;; swank-clojure
 (add-to-list 'load-path (concat site-lisp-directory "/swank-clojure"))
-
-(require 'swank-clojure-autoload)
-(swank-clojure-config
- (setq swank-clojure-jar-path "~/.clojure/clojure-1.0.0.jar")
+(require 'swank-clojure)
+(setq swank-clojure-jar-path "~/.clojure/clojure-1.0.0.jar")
  (setq swank-clojure-extra-classpaths
-       (list "~/.clojure/clojure-contrib.jar")))
+       (list "~/.clojure/clojure-contrib.jar"))
 
 ;; load slime ONLY when clisp is present on the system
 (when (executable-find "clisp")
@@ -259,6 +269,14 @@ Then move to that line and indent accordning to mode"
 			(lambda ()
 			  (unless (slime-connected-p)
 				(save-excursion (slime))))))
+
+;; truncate lines (don't soft-wrap)
+(setq-default truncate-lines t)
+
+;; js2 mode - http://code.google.com/p/js2-mode/
+(add-to-list 'load-path (concat site-lisp-directory "/javascript"))
+(autoload 'js2-mode "js2" nil t)
+(add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
 
 ;; try loading p4 from Apollo environment
 (when (executable-find "p4")
@@ -279,7 +297,6 @@ Then move to that line and indent accordning to mode"
 (defun refresh-file ()
   (interactive)
   (revert-buffer t t t))
-
 (global-set-key [f5]
 '(lambda () "Refresh the buffer from the disk (prompt of modified)."
 (interactive)
@@ -291,10 +308,42 @@ Then move to that line and indent accordning to mode"
 ;(autoload 'css-mode "css-mode" "Mode for editing CSS files" t)
 
 ;You may also want something like:
-
 (setq auto-mode-alist
       (append '(("\\.css$" . css-mode))
               auto-mode-alist))
+
+;;----------------------------------------------------------------------------
+;; Navigate window layouts with "C-c <left>" and "C-c <right>"
+;;----------------------------------------------------------------------------
+(winner-mode 1)
+
+;;----------------------------------------------------------------------------
+;; Navigate windows "C-<arrow>"
+;;----------------------------------------------------------------------------
+(windmove-default-keybindings 'control)
+
+;;----------------------------------------------------------------------------
+;; Modeline tweaks
+;;----------------------------------------------------------------------------
+(size-indication-mode)
+(autoload 'linum-mode "linum" "Toggle line numbering" t)
+
+;;----------------------------------------------------------------------------
+;; Highlight URLs in comments/strings
+;;----------------------------------------------------------------------------
+(add-hook 'find-file-hooks 'goto-address-prog-mode)
+
+;;----------------------------------------------------------------------------
+;; Browse current HTML file
+;;----------------------------------------------------------------------------
+(defun browse-current-file ()
+  (interactive)
+  (browse-url (concat "file://" (buffer-file-name))))
+
+;;----------------------------------------------------------------------------
+;; NXHTML mode
+;;----------------------------------------------------------------------------
+(load (concat site-lisp-directory "/nxhtml-mode/autostart.el"))
 
 ;; wikipedia-mode
 (add-to-list 'load-path (concat site-lisp-directory "/wikipedia-mode"))
