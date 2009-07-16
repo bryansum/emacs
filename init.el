@@ -62,11 +62,11 @@
  )
 
 ;; php-mode
-(add-to-list 'load-path (concat site-lisp-directory "/php-mode"))
-(require 'php-mode)
+;(add-to-list 'load-path (concat site-lisp-directory "/php-mode"))
+;(require 'php-mode)
 ;; using abbrev-mode
-(add-hook 'php-mode-hook
-		  '(lamdba () (define-abbrev php-mode-abbrev-table "ex" "extends")))
+;(add-hook 'php-mode-hook
+;		  '(lamdba () (define-abbrev php-mode-abbrev-table "ex" "extends")))
 
 ;; python-mode
 (add-to-list 'load-path (concat site-lisp-directory "/python-mode"))
@@ -125,14 +125,6 @@
 ;; make flymake commands to frequently used ones
 (global-set-key [f3] 'flymake-display-err-menu-for-current-line)
 (global-set-key [f4] 'flymake-goto-next-error)
-
-(defun flymake-html-init ()
-  (let* ((temp-file (flymake-init-create-temp-buffer-copy
-					 'flymake-create-temp-inplace))
-		 (local-file (file-relative-name
-					  temp-file
-					  (file-name-directory buffer-file-name))))
-	(list "tidy" (list local-file))))
 
 (add-to-list 'flymake-allowed-file-name-masks
 			 '("\\.html$\\|\\.ctp" flymake-html-init))
@@ -294,9 +286,9 @@ Then move to that line and indent accordning to mode"
 (revert-buffer t (not (buffer-modified-p)) t)))
 
 ;; css-mode
-(add-to-list 'load-path (concat site-lisp-directory "/css-mode"))
-(require 'css-mode)
-(autoload 'css-mode "css-mode" "Mode for editing CSS files" t)
+;(add-to-list 'load-path (concat site-lisp-directory "/css-mode"))
+;(require 'css-mode)
+;(autoload 'css-mode "css-mode" "Mode for editing CSS files" t)
 
 ;You may also want something like:
 
@@ -362,3 +354,12 @@ Then move to that line and indent accordning to mode"
 (add-to-list 'auto-mode-alist '("\\.js$" . espresso-mode))
 (add-to-list 'auto-mode-alist '("\\.json$" . espresso-mode))
 
+;; make dired open in same buffer
+(put 'dired-find-alternate-file 'disabled nil)  
+
+;; remove ^M line endings
+(defun remove-dos-eol ()
+  "Removes the disturbing '^M' showing up in files containing mixed UNIX and DOS line endings."
+  (interactive)
+  (setq buffer-display-table (make-display-table))
+  (aset buffer-display-table ?\^M []))
